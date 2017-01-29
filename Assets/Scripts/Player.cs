@@ -7,6 +7,7 @@ public class Player : MonoBehaviour {
 
     enum PlayerState
     {
+        Wait,
         Walk,
         Jump
     }
@@ -27,38 +28,64 @@ public class Player : MonoBehaviour {
         rbody = GetComponent<Rigidbody>();
 	}
 	
+    public void Grounded()
+    {
+        playerState = PlayerState.Walk;
+    }
+
+    public void NotGrounded()
+    {
+        playerState = PlayerState.Jump;
+    }
+
+    public void StartGame()
+    {
+
+    }
+
 	void Update () {
         HandleInput();
 	}
-
+    
     void HandleInput()
     {
         if (PlayerState.Jump == playerState)
         {
             walkLeftRight();
+            if(GetJumpKey() && TimeManager.Instance().timeDictionary.ContainsKey("jumpDelay"))
+            {
+                rbody.AddForce(0, jumpForce, 0);
+            }
         }
         else if (PlayerState.Walk == playerState)
         {
             walkLeftRight();
-            if(Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.Space))
+            if(GetJumpKey())
             {
                 jump();
             }
         }
     }
 
+    bool GetJumpKey()
+    {
+        return Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.Space);
+    }
+
     void jump()
     {
         rbody.AddForce(0, jumpImpulse, 0, ForceMode.Impulse);
+        playerState = PlayerState.Jump;
+        TimeManager.Instance().timeDictionary["jumpDelay"] = jumpDelay;
     }
 
     void walkLeftRight()
     {
-        bool getW = Input.GetKey(KeyCode.W), getD = Input.GetKey(KeyCode.D);
+        bool getA = Input.GetKey(KeyCode.A), getD = Input.GetKey(KeyCode.D);
         //if not pressing both
-        if (getW != getD)
+        if (getA != getD)
         {
-            if (getW)
+            if (getA)
             {
                 rbody.AddForce(-walkForce, 0, 0);
             }

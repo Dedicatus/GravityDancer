@@ -10,13 +10,26 @@ public class GameManager : MonoBehaviour {
     {
         if(_instance == null)
         {
-            _instance = new GameManager();
+            GameObject obj = new GameObject();
+            _instance = obj.AddComponent<GameManager>();
         }
         return _instance;
     }
 
+    public GameObject playerPrefab;
+    public Transform playerSpawnPosition;
+
+    Player player;
+
+    void StartGame()
+    {
+        player = Instantiate(playerPrefab, playerSpawnPosition).GetComponent<Player>();
+
+    }
+
 	void Start () {
-		
+        gameObject.AddComponent<TimeManager>();
+        StartGame();
 	}
 	
 	// Update is called once per frame

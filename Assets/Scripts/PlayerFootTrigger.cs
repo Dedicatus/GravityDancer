@@ -6,6 +6,8 @@ public class PlayerFootTrigger : MonoBehaviour {
 
     Player parent;
 
+    int collisionCount = 0;
+
     private void Start()
     {
         parent = transform.parent.GetComponent<Player>();
@@ -13,11 +15,21 @@ public class PlayerFootTrigger : MonoBehaviour {
 
     private void OnTriggerEnter(Collider other)
     {
-        parent.canJump = true;
+        if(other.tag != "Player")
+        {
+            collisionCount++;
+            parent.Grounded();
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        parent.canJump = false;
+        if (other.tag != "Player")
+        {
+            collisionCount--;
+            if(collisionCount == 0)
+            parent.NotGrounded();
+        }
+        parent.NotGrounded();
     }
 }
