@@ -6,7 +6,7 @@ public class PlayerFootTrigger : MonoBehaviour {
 
     Player parent;
 
-    int collisionCount = 0;
+    public int collisionCount = 0;
 
     private void Start()
     {
@@ -15,20 +15,28 @@ public class PlayerFootTrigger : MonoBehaviour {
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.tag != "Player")
+        if(other.tag != "Player" && other.tag != "ExtraTriggers")
         {
             collisionCount++;
             parent.Grounded();
         }
     }
 
+    void Update()
+    {
+        if (collisionCount > 0)
+            parent.Grounded();
+        else
+            parent.NotGrounded();
+    }
+
     private void OnTriggerExit(Collider other)
     {
-        if (other.tag != "Player")
+        if (other.tag != "Player" && other.tag != "ExtraTriggers")
         {
             collisionCount--;
             if(collisionCount == 0)
-            parent.NotGrounded();
+                parent.NotGrounded();
         }
         parent.NotGrounded();
     }

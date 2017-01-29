@@ -5,14 +5,14 @@ using UnityEngine;
 [RequireComponent (typeof(Rigidbody))]
 public class Player : MonoBehaviour {
 
-    enum PlayerState
+    public enum PlayerState
     {
         Wait,
         Walk,
         Jump
     }
 
-    PlayerState playerState;
+    public PlayerState playerState;
 
     public float walkForce;
     public float jumpForce;
@@ -26,6 +26,7 @@ public class Player : MonoBehaviour {
 	void Start () {
         playerState = PlayerState.Jump;
         rbody = GetComponent<Rigidbody>();
+        transform.parent = null;
 	}
 	
     public void Grounded()
@@ -43,7 +44,12 @@ public class Player : MonoBehaviour {
 
     }
 
-	void Update () {
+	void Update ()
+    {
+        Vector3 gravityDir = GravityManager.Instance().gravityDir;
+        float degree = Vector3.Angle(Vector3.down, gravityDir);
+        if (gravityDir.x < 0) degree = -degree;
+        transform.rotation = Quaternion.Euler(0, 0, degree);
         HandleInput();
 	}
     
@@ -54,13 +60,14 @@ public class Player : MonoBehaviour {
             walkLeftRight();
             if(GetJumpKey() && TimeManager.Instance().timeDictionary.ContainsKey("jumpDelay"))
             {
-                rbody.AddForce(0, jumpForce, 0);
+                Vector3 gravityDir = GravityManager.Instance().gravityDir;
+                rbody.AddForce(gravityDir * -jumpForce);
             }
         }
         else if (PlayerState.Walk == playerState)
         {
             walkLeftRight();
-            if(GetJumpKey())
+            if(GetJumpKeyDown())
             {
                 jump();
             }
@@ -72,26 +79,33 @@ public class Player : MonoBehaviour {
         return Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.Space);
     }
 
+    bool GetJumpKeyDown()
+    {
+        return Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.Space);
+    }
+
     void jump()
     {
-        rbody.AddForce(0, jumpImpulse, 0, ForceMode.Impulse);
-        playerState = PlayerState.Jump;
+        Vector3 gravityDir = GravityManager.Instance().gravityDir;
+        rbody.AddForce(gravityDir * -jumpImpulse, ForceMode.Impulse);
+        //playerState = PlayerState.Jump;
         TimeManager.Instance().timeDictionary["jumpDelay"] = jumpDelay;
     }
 
     void walkLeftRight()
     {
         bool getA = Input.GetKey(KeyCode.A), getD = Input.GetKey(KeyCode.D);
+        Vector3 gravityDir = GravityManager.Instance().gravityDir;
         //if not pressing both
         if (getA != getD)
         {
             if (getA)
             {
-                rbody.AddForce(-walkForce, 0, 0);
+                rbody.AddForce(Vector3.Cross(gravityDir,Vector3.forward)*walkForce);
             }
             else
             {
-                rbody.AddForce(walkForce, 0, 0);
+                rbody.AddForce(Vector3.Cross(gravityDir, Vector3.forward) * -walkForce);
             }
         }
     }

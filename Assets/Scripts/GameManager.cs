@@ -1,35 +1,68 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
-    private static GameManager _instance = null;
+	private static GameManager _instance = null;
 
-    public static GameManager Instance()
+	public static GameManager Instance()
+	{
+		if(_instance == null)
+		{
+			GameObject obj = new GameObject();
+			_instance = obj.AddComponent<GameManager>();
+		}
+		return _instance;
+	}
+
+	public GameObject playerPrefab;
+	public Transform playerSpawnPosition;
+
+	[HideInInspector]
+	public Player player;
+
+	public void RestartAfterDelay(float delay)
     {
-        if(_instance == null)
+        resetGameContext();
+        StartCoroutine(restartAfterDelay(delay));
+	}
+
+	IEnumerator restartAfterDelay(float delay)
+	{
+		yield return new WaitForSeconds(delay);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+	}
+
+	public void resetGameContext()
+	{
+		GameContext.player = null;
+	}
+
+
+	void StartGame()
+	{
+        if (GameContext.spawnPos == Vector3.zero)
+            player = Instantiate(playerPrefab, playerSpawnPosition).GetComponent<Player>();
+        else
         {
-            GameObject obj = new GameObject();
-            _instance = obj.AddComponent<GameManager>();
+            player = Instantiate(playerPrefab).GetComponent<Player>();
+            player.gameObject.transform.position = GameContext.spawnPos;
         }
-        return _instance;
-    }
+        GameContext.player = player;
+		
+	}
 
-    public GameObject playerPrefab;
-    public Transform playerSpawnPosition;
+	void Awake()
+	{
+		gameObject.AddComponent<TimeManager>();
+		gameObject.AddComponent<GravityManager>();
+		StartGame();
+	}
 
-    Player player;
-
-    void StartGame()
-    {
-        player = Instantiate(playerPrefab, playerSpawnPosition).GetComponent<Player>();
-
-    }
-
-	void Start () {
-        gameObject.AddComponent<TimeManager>();
-        StartGame();
+	void Start ()
+	{
 	}
 	
 	// Update is called once per frame
